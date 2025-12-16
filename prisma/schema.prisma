@@ -1,0 +1,33 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output = "../app/generated/prisma"
+}
+
+model Monitor {
+  id          String    @id @default(cuid())
+  name        String
+  url         String
+  interval    Int       @default(60)
+  active      Boolean   @default(true)
+  status      String
+  lastCheck   DateTime?
+  lastLatency Int?
+  pings       Ping[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Ping {
+  id         Int      @id @default(autoincrement())
+  latency    Int
+  statusCode Int
+  createdAt  DateTime @default(now())
+  monitorId  String
+  monitor    Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  @@index([monitorId, createdAt(sort: Desc)])
+}
