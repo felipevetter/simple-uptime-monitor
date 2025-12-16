@@ -24,7 +24,7 @@ import {
   PauseCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Monitor } from '@/app/generated/prisma';
+import { Monitor } from '@prisma/client';
 
 interface MonitorCardProps {
   monitor: Monitor;

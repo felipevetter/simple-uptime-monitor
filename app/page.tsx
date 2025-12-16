@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import MonitorForm from '@/components/MonitorForm';
 import MonitorCard from '@/components/MonitorCard';
 import { Activity } from 'lucide-react';

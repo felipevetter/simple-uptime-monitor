@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import ResponseTimeChart from '@/components/ResponseTimeChart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
