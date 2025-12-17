@@ -1,13 +1,24 @@
+import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import MonitorForm from '@/components/MonitorForm';
 import MonitorCard from '@/components/MonitorCard';
-import { Activity } from 'lucide-react';
+import { UserAccountNav } from '@/components/user-account-nav';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect('/api/auth/signin');
+  }
+
   const monitors = await prisma.monitor.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: {
+      userId: session.user.id,
+    },
+    orderBy: { id: 'desc' },
   });
 
   return (
@@ -19,7 +30,10 @@ export default async function Home() {
             Real-time uptime monitoring for your services.
           </p>
         </div>
-        <MonitorForm />
+        <div className="flex items-center gap-4">
+          <MonitorForm />
+          <UserAccountNav user={session.user} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -27,15 +41,12 @@ export default async function Home() {
           <MonitorCard key={monitor.id} monitor={monitor} />
         ))}
       </div>
-      
+
       {monitors.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed rounded-xl bg-muted/30">
-          <div className="bg-background p-4 rounded-full mb-4 shadow-sm">
-            <Activity className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <h3 className="text-xl font-semibold mb-1">No monitors yet</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm text-center">
-            Add your first monitor to start tracking uptime and latency metrics in real-time.
+        <div className="text-center py-20 border-2 border-dashed rounded-lg">
+          <h3 className="text-lg font-semibold">No monitors yet</h3>
+          <p className="text-muted-foreground">
+            Add your first monitor to start tracking.
           </p>
         </div>
       )}
