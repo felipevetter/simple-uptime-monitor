@@ -1,5 +1,6 @@
 'use server';
 
+import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -10,6 +11,14 @@ const CreateMonitorSchema = z.object({
 });
 
 export async function createMonitorAction(prevState: any, formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      message: { _server: ['Unauthorized. Please login to create a monitor.'] },
+    };
+  }
+
   const validatedFields = CreateMonitorSchema.safeParse({
     name: formData.get('name'),
     url: formData.get('url'),
@@ -27,40 +36,57 @@ export async function createMonitorAction(prevState: any, formData: FormData) {
         name: validatedFields.data.name,
         url: validatedFields.data.url,
         status: 'PENDING',
+        userId: session.user.id,
       },
     });
     revalidatePath('/');
     return { message: null };
   } catch (error) {
     return {
-      message: { _server: ['Não foi possível criar o monitor.'] },
+      message: { _server: ['Could not create the monitor.'] },
     };
   }
 }
 
 export async function deleteMonitorAction(id: string) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { message: 'Unauthorized' };
+  }
+
   try {
-    await prisma.monitor.delete({
-      where: { id },
+    // Usar deleteMany permite passar userId no where para segurança
+    await prisma.monitor.deleteMany({
+      where: {
+        id,
+        userId: session.user.id,
+      },
     });
     revalidatePath('/');
   } catch (error) {
-    return {
-      message: 'Database Error: Não foi possível deletar o monitor.',
-    };
+    return { message: 'Database Error: Failed to Delete Monitor.' };
   }
 }
 
 export async function toggleMonitorAction(id: string, currentStatus: boolean) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { message: 'Unauthorized' };
+  }
+
   try {
-    await prisma.monitor.update({
-      where: { id },
+    // Usar updateMany permite passar userId no where
+    await prisma.monitor.updateMany({
+      where: {
+        id,
+        userId: session.user.id,
+      },
       data: { active: !currentStatus },
     });
     revalidatePath('/');
   } catch (error) {
-    return {
-      message: 'Database Error: Não foi possível alterar o status do monitor.',
-    };
+    return { message: 'Database Error: Failed to toggle monitor status.' };
   }
 }
