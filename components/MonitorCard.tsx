@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTransition } from 'react';
 import { deleteMonitorAction, toggleMonitorAction } from '@/lib/actions';
-
+import { Monitor } from '@prisma/client';
 import {
   Card,
   CardContent,
@@ -24,7 +24,6 @@ import {
   PauseCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Monitor } from '@prisma/client';
 
 interface MonitorCardProps {
   monitor: Monitor;
@@ -85,7 +84,7 @@ export default function MonitorCard({ monitor }: MonitorCardProps) {
         </Badge>
       </CardHeader>
       <CardContent>
-        <Link href={`/monitor/${monitor.id}`} className="hover:underline group block">
+        <Link href={`/dashboard/monitor/${monitor.id}`} className="hover:underline group block">
           <div className="flex items-center space-x-2 text-2xl font-bold">
             <StatusIcon
               className={`h-6 w-6 transition-colors ${

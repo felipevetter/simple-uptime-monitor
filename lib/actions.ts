@@ -39,7 +39,7 @@ export async function createMonitorAction(prevState: any, formData: FormData) {
         userId: session.user.id,
       },
     });
-    revalidatePath('/');
+    revalidatePath('/dashboard');
     return { message: null };
   } catch (error) {
     return {
@@ -52,20 +52,23 @@ export async function deleteMonitorAction(id: string) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { message: 'Unauthorized' };
+    return {
+      message: 'Unauthorized',
+    };
   }
 
   try {
-    // Usar deleteMany permite passar userId no where para segurança
-    await prisma.monitor.deleteMany({
-      where: {
+    await prisma.monitor.delete({
+      where: { 
         id,
-        userId: session.user.id,
+        userId: session.user.id 
       },
     });
-    revalidatePath('/');
+    revalidatePath('/dashboard');
   } catch (error) {
-    return { message: 'Database Error: Failed to Delete Monitor.' };
+    return {
+      message: 'Database Error: Failed to Delete Monitor.',
+    };
   }
 }
 
@@ -73,20 +76,23 @@ export async function toggleMonitorAction(id: string, currentStatus: boolean) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { message: 'Unauthorized' };
+    return {
+      message: 'Unauthorized',
+    };
   }
 
   try {
-    // Usar updateMany permite passar userId no where
-    await prisma.monitor.updateMany({
-      where: {
+    await prisma.monitor.update({
+      where: { 
         id,
-        userId: session.user.id,
+        userId: session.user.id
       },
       data: { active: !currentStatus },
     });
-    revalidatePath('/');
+    revalidatePath('/dashboard');
   } catch (error) {
-    return { message: 'Database Error: Failed to toggle monitor status.' };
+    return {
+      message: 'Database Error: Failed to toggle monitor status.',
+    };
   }
 }

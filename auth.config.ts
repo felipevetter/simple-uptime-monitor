@@ -6,8 +6,15 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isCron = nextUrl.pathname.startsWith('/api/cron');
+      const isDashboard = nextUrl.pathname.startsWith('/dashboard');
+
       if (isCron) return true;
-      return isLoggedIn;
+
+      if (isDashboard) {
+        if (isLoggedIn) return true;
+        return false;
+      }
+      return true;
     },
   },
 } satisfies NextAuthConfig;
