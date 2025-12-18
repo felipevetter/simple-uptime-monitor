@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛰️ Simple Uptime Monitor
 
-## Getting Started
+Um sistema de monitoramento de sites focado em performance e arquitetura distribuída. Construído para ser leve, seguro e fácil de hospedar.
 
-First, run the development server:
+![Dashboard Preview](public/preview.png)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 💡 Por que este projeto?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A maioria dos clones de Uptime Robot por aí usa loops simples dentro de rotas da Vercel para checar os sites. Isso não escala e morre por **timeout**. 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Neste projeto, eu quis demonstrar uma arquitetura de "gente grande":
+- **O App (Next.js 16):** É apenas o painel de controle e a API.
+- **O Motor (Cloudflare Workers):** Os pings rodam na borda (Edge), em uma infraestrutura separada, garantindo que o monitoramento nunca pare, independente da carga no banco de dados ou no servidor principal.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ O que tem debaixo do capô?
 
-## Learn More
+- **Framework:** Next.js 16 (App Router)
+- **Linguagem:** TypeScript (Type-safe)
+- **Banco de Dados:** PostgreSQL via Prisma ORM (com índices compostos para gráficos velozes)
+- **Autenticação:** Auth.js v5 (Suporte a GitHub OAuth e Email/Senha com hash seguro)
+- **UI:** Tailwind CSS + Shadcn/UI (Design focado em UX)
+- **Gráficos:** Recharts para visualização de latência das últimas 24h
+- **Agente de Monitoramento:** Cloudflare Workers (Execução na borda com Cron Triggers)
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Decisões de Engenharia (O Diferencial)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Arquitetura Desacoplada
+Em vez de sobrecarregar a Vercel, criei um agente externo que roda em Cloudflare Workers. Ele acorda a cada minuto, busca os alvos via API secreta e devolve os resultados em lote (bulk insert). Isso evita o overhead de abrir centenas de conexões HTTP no servidor principal.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Segurança Multi-tenant
+O sistema foi desenhado para ser um SaaS. Cada usuário só enxerga seus dados. Usei filtros rigorosos no Prisma (`userId`) em todas as Server Actions para evitar vulnerabilidades de IDOR (Insecure Direct Object Reference). Se você tentar deletar um monitor que não é seu pelo ID, o sistema simplesmente nega.
 
-## Deploy on Vercel
+### 3. Performance de Banco de Dados
+Gráficos de latência podem ficar lentos conforme o histórico cresce. Para resolver isso, a tabela de `Pings` usa índices compostos em `(monitorId, createdAt)`. O resultado? Gráficos que carregam instantaneamente mesmo com milhares de registros no log.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📦 Como rodar o projeto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone e Instale:**
+   ```bash
+   git clone https://github.com/felipevetter/simple-uptime-monitor.git
+   cd simple-uptime-monitor
+   npm install
+   ```
+
+2. **Configure as Variáveis:**
+   Crie um arquivo `.env` baseado no `.env.example` e preencha com suas chaves do Neon (Postgres), GitHub OAuth e um segredo para o Worker.
+
+3. **Inicie o Banco:**
+   ```bash
+   npx prisma migrate dev
+   ```
+
+4. **Suba o Motor (Cloudflare Worker):**
+   O código do agente está na pasta `/worker`. Basta colar no painel da Cloudflare e configurar a URL da sua API e o `WORKER_SECRET`.
+
+## 📈 Roadmap / Próximos Passos
+- [ ] Alertas via Telegram/Discord quando um site cair.
+- [ ] Status Pages públicas para compartilhar com clientes.
+
+---
+Desenvolvido por Felipe Vetter - Conecte-se comigo no [LinkedIn](https://www.linkedin.com/in/felipevetter/).
