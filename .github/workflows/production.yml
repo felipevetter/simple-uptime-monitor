@@ -9,15 +9,18 @@ jobs:
   deploy-migrations-and-check:
     name: Lint, Typecheck & Migrate
     runs-on: ubuntu-latest
+    
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22.14
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -34,5 +37,3 @@ jobs:
 
       - name: Deploy Database Migrations
         run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
