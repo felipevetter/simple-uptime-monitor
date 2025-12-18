@@ -43,7 +43,7 @@ export default async function LandingPage() {
                                 <Button size="sm" className="rounded-full px-6">Dashboard</Button>
                             </Link>
                         ) : (
-                            <Link href="/api/auth/signin">
+                            <Link href="/login">
                                 <Button size="sm" className="rounded-full px-6">Sign In</Button>
                             </Link>
                         )}
@@ -178,7 +178,7 @@ export default async function LandingPage() {
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                <Link href={session?.user?.id ? "/dashboard" : "/api/auth/signin"}>
+                                <Link href={session?.user?.id ? "/dashboard" : "/login"}>
                                     <Button size="lg" className="rounded-full px-8 h-12">
                                         Create Free Account
                                     </Button>

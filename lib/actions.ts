@@ -1,13 +1,26 @@
 'use server';
 
-import { auth } from '@/auth';
+import { auth, signIn } from '@/auth';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { AuthError } from 'next-auth';
 
 const CreateMonitorSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   url: z.string().url('Please enter a valid URL.'),
+});
+
+const RegisterSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters.'),
+  email: z.string().email('Invalid email address.'),
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+});
+
+const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
 });
 
 export async function createMonitorAction(prevState: any, formData: FormData) {
@@ -95,4 +108,74 @@ export async function toggleMonitorAction(id: string, currentStatus: boolean) {
       message: 'Database Error: Failed to toggle monitor status.',
     };
   }
+}
+
+export async function registerUserAction(prevState: any, formData: FormData) {
+  const validatedFields = RegisterSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { email, password, name } = validatedFields.data;
+
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return {
+        message: { email: ['Email already in use.'] },
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    // Não fazemos login automático aqui por segurança/simplicidade, 
+    // redirecionamos para login na UI após sucesso.
+    return { success: true, message: null };
+  } catch (error) {
+    return {
+      message: { _server: ['Something went wrong. Please try again.'] },
+    };
+  }
+}
+
+export async function authenticateAction(prevState: string | undefined, formData: FormData) {
+  try {
+    await signIn('credentials', {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      redirectTo: '/dashboard',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error;
+  }
+}
+
+export async function githubLoginAction() {
+  await signIn('github', { redirectTo: '/dashboard' });
 }
