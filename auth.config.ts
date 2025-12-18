@@ -5,11 +5,11 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isCron = nextUrl.pathname.startsWith('/api/cron');
+      const isWorker = nextUrl.pathname.startsWith('/api/worker');
       const isAuthRoute = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register');
       const isDashboard = nextUrl.pathname.startsWith('/dashboard');
 
-      if (isCron) return true;
+      if (isWorker) return true;
 
       if (isAuthRoute && isLoggedIn) {
         return Response.redirect(new URL('/dashboard', nextUrl));
