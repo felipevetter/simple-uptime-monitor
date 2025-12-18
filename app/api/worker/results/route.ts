@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
             lastLatency: r.latency,
           },
         });
-      } catch (error) {
+      } catch {
         // Ignorar erro se o monitor tiver sido deletado nesse meio tempo para não falhar o batch inteiro
       }
     });

@@ -1,15 +1,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
 import {
     Activity,
     ArrowRight,
     BarChart3,
     CheckCircle2,
-    Clock,
     Github,
-    Globe,
     ShieldCheck,
     Zap
 } from 'lucide-react';
@@ -140,7 +137,7 @@ export default async function LandingPage() {
                                 </div>
                                 <h3 className="mb-2 text-xl font-bold">Real-time Checks</h3>
                                 <p className="text-muted-foreground">
-                                    We verify your site's availability every 60 seconds from our global edge network, ensuring you know the moment something goes wrong.
+                                    We verify your site&apos;s availability every 60 seconds from our global edge network, ensuring you know the moment something goes wrong.
                                 </p>
                             </div>
 
@@ -159,7 +156,7 @@ export default async function LandingPage() {
                                     <ShieldCheck className="h-6 w-6" />
                                 </div>
                                 <h3 className="mb-2 text-xl font-bold">Latency History</h3>
-                                <p className="text-muted-foreground">Keep a detailed record of your website's performance. Analyze response times over the last 24 hours to spot degradation trends before they become outages
+                                <p className="text-muted-foreground">Keep a detailed record of your website&apos;s performance. Analyze response times over the last 24 hours to spot degradation trends before they become outages
                                 </p>
                             </div>
                         </div>

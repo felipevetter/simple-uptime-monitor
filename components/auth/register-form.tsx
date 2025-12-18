@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { registerUserAction, githubLoginAction } from '@/lib/actions';
+import { registerUserAction, githubLoginAction, ActionState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const initialState = {
-  message: null as any,
+  message: null as ActionState['message'],
   success: false,
 };
 
@@ -43,7 +43,7 @@ export function RegisterForm() {
   
   let serverError = '';
   if (state.message && typeof state.message === 'object' && '_server' in state.message) {
-    serverError = state.message._server?.[0];
+    serverError = state.message._server?.[0] || '';
   }
 
   return (

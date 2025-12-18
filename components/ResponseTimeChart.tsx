@@ -23,7 +23,15 @@ interface ResponseTimeChartProps {
   data: ChartData[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface payload {
+  payload: {
+    latency: number;
+    statusCode: number;
+    createdAt: Date;
+  };
+}
+
+const CustomTooltip = ({ active, payload, label }: {active: boolean; payload: payload[]; label: string}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -108,7 +116,7 @@ export default function ResponseTimeChart({ data }: ResponseTimeChartProps) {
                 axisLine={false}
                 tickFormatter={(value: number) => `${value}ms`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip active={false} payload={[]} label="" />} />
               <Area
                 type="monotone"
                 dataKey="latency"

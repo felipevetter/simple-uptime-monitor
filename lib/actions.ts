@@ -18,12 +18,15 @@ const RegisterSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
-const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+export type ActionState = {
+  message: {
+    _server?: string[];
+    [key: string]: string[] | string | undefined;
+  } | null;
+  success?: boolean;
+};
 
-export async function createMonitorAction(prevState: any, formData: FormData) {
+export async function createMonitorAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -54,7 +57,7 @@ export async function createMonitorAction(prevState: any, formData: FormData) {
     });
     revalidatePath('/dashboard');
     return { message: null };
-  } catch (error) {
+  } catch {
     return {
       message: { _server: ['Could not create the monitor.'] },
     };
@@ -72,13 +75,13 @@ export async function deleteMonitorAction(id: string) {
 
   try {
     await prisma.monitor.delete({
-      where: { 
+      where: {
         id,
-        userId: session.user.id 
+        userId: session.user.id
       },
     });
     revalidatePath('/dashboard');
-  } catch (error) {
+  } catch {
     return {
       message: 'Database Error: Failed to Delete Monitor.',
     };
@@ -96,21 +99,21 @@ export async function toggleMonitorAction(id: string, currentStatus: boolean) {
 
   try {
     await prisma.monitor.update({
-      where: { 
+      where: {
         id,
         userId: session.user.id
       },
       data: { active: !currentStatus },
     });
     revalidatePath('/dashboard');
-  } catch (error) {
+  } catch {
     return {
       message: 'Database Error: Failed to toggle monitor status.',
     };
   }
 }
 
-export async function registerUserAction(prevState: any, formData: FormData) {
+export async function registerUserAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const validatedFields = RegisterSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
@@ -149,7 +152,7 @@ export async function registerUserAction(prevState: any, formData: FormData) {
     // Não fazemos login automático aqui por segurança/simplicidade, 
     // redirecionamos para login na UI após sucesso.
     return { success: true, message: null };
-  } catch (error) {
+  } catch {
     return {
       message: { _server: ['Something went wrong. Please try again.'] },
     };

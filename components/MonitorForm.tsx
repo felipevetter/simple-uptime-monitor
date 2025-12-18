@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { startTransition, useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { createMonitorAction } from '@/lib/actions';
+import { createMonitorAction, type ActionState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,8 +17,9 @@ import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
-const initialState = {
-  message: null as any,
+
+const initialState: ActionState = {
+  message: null,
 };
 
 function SubmitButton() {
@@ -34,16 +35,24 @@ export default function MonitorForm() {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(createMonitorAction, initialState);
 
+  const [success, setSuccess] = useState(false);
+
   useEffect(() => {
-    if (state.message === null) {
+    if (state.message === null && success) {
       toast.success('Monitor created successfully!');
-      setOpen(false);
+      startTransition(() => {
+        setOpen(false);
+        setSuccess(false);
+      });
     } else if (state.message && typeof state.message === 'object' && '_server' in state.message) {
-      toast.error(state.message._server[0]);
+      toast.error(state.message?._server?.[0]);
     }
-  }, [state]);
-  let errors = typeof state.message === 'object' && !state.message?._server
-    ? state.message
+  }, [state, success]);
+
+  // Use a local variable to help TypeScript with narrowing
+  const stateMessage = state.message;
+  const errors = stateMessage && typeof stateMessage === 'object' && !('_server' in stateMessage)
+    ? stateMessage
     : {};
 
   return (
@@ -60,7 +69,13 @@ export default function MonitorForm() {
             Enter the details of the website you want to track.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="grid gap-4 py-4">
+        <form
+          action={(payload) => {
+            setSuccess(true);
+            formAction(payload);
+          }}
+          className="grid gap-4 py-4"
+        >
           <div className="grid gap-2">
             <Label htmlFor="name" className={errors?.name ? 'text-red-500' : ''}>
               Name
@@ -71,7 +86,7 @@ export default function MonitorForm() {
               placeholder="My Website"
               className={errors?.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
-            {errors?.name && (
+            {errors?.name && Array.isArray(errors.name) && (
               <p className="text-xs text-red-500">{errors.name[0]}</p>
             )}
           </div>
@@ -86,7 +101,7 @@ export default function MonitorForm() {
               type="url"
               className={errors?.url ? 'border-red-500 focus-visible:ring-red-500' : ''}
             />
-            {errors?.url && (
+            {errors?.url && Array.isArray(errors.url) && (
               <p className="text-xs text-red-500">{errors.url[0]}</p>
             )}
           </div>
