@@ -5,13 +5,13 @@ on:
     branches:
       - main
 
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
 jobs:
   deploy-migrations-and-check:
     name: Lint, Typecheck & Migrate
     runs-on: ubuntu-latest
-    
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout Repo
