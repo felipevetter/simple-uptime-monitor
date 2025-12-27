@@ -1,5 +1,12 @@
 # 🛰️ Simple Uptime Monitor
 
+<div align="left">
+  <img src="https://img.shields.io/github/actions/workflow/status/felipevetter/simple-uptime-monitor/main.yml?label=Pipeline&style=flat-square" alt="Pipeline Status" />
+
+  <img src="https://img.shields.io/website?url=https%3A%2F%2Fsimple-uptime-monitor.vercel.app&label=System&style=flat-square&up_color=2ea44f&down_color=cf222e" alt="System Status" />
+</div>
+<br />
+
 Um sistema de monitoramento de sites focado em performance e arquitetura distribuída. Construído para ser leve, seguro e fácil de hospedar.
 
 ![Dashboard Preview](public/preview.png)
