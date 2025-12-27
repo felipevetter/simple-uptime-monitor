@@ -3,15 +3,18 @@ import { createMonitorAction, deleteMonitorAction, toggleMonitorAction, register
 import { auth, signIn } from '@/auth';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { Monitor, User } from '@prisma/client';
+import { Session } from 'next-auth';
 
 describe('Server Actions', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
+
     describe('createMonitorAction', () => {
         it('should return error if unauthorized', async () => {
-            vi.mocked(auth).mockResolvedValueOnce(null as unknown as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce(null);
             const formData = new FormData();
             formData.append('name', 'Test');
             formData.append('url', 'https://example.com');
@@ -22,7 +25,7 @@ describe('Server Actions', () => {
         });
 
         it('should return error if validation fails', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
             const formData = new FormData();
             formData.append('name', '');
             formData.append('url', 'invalid-url');
@@ -34,8 +37,8 @@ describe('Server Actions', () => {
         });
 
         it('should create monitor and revalidate path on success', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
-            vi.mocked(prisma.monitor.create).mockResolvedValueOnce({} as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
+            vi.mocked(prisma.monitor.create).mockResolvedValueOnce({} as Monitor);
 
             const formData = new FormData();
             formData.append('name', 'My Monitor');
@@ -56,7 +59,7 @@ describe('Server Actions', () => {
         });
 
         it('should return error on database failure', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
             vi.mocked(prisma.monitor.create).mockRejectedValueOnce(new Error('DB Error'));
 
             const formData = new FormData();
@@ -71,14 +74,14 @@ describe('Server Actions', () => {
 
     describe('deleteMonitorAction', () => {
         it('should return error if unauthorized', async () => {
-            vi.mocked(auth).mockResolvedValueOnce(null as unknown as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce(null);
             const result = await deleteMonitorAction('monitor-1');
             expect(result?.message).toBe('Unauthorized');
         });
 
         it('should delete monitor and revalidate path on success', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
-            vi.mocked(prisma.monitor.delete).mockResolvedValueOnce({} as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
+            vi.mocked(prisma.monitor.delete).mockResolvedValueOnce({} as Monitor);
 
             await deleteMonitorAction('monitor-1');
 
@@ -89,7 +92,7 @@ describe('Server Actions', () => {
         });
 
         it('should return error on failure', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
             vi.mocked(prisma.monitor.delete).mockRejectedValueOnce(new Error('Fail'));
 
             const result = await deleteMonitorAction('monitor-1');
@@ -99,8 +102,8 @@ describe('Server Actions', () => {
 
     describe('toggleMonitorAction', () => {
         it('should toggle status', async () => {
-            vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'user-1' } } as any);
-            vi.mocked(prisma.monitor.update).mockResolvedValueOnce({} as any);
+            vi.mocked(auth as unknown as () => Promise<Session | null>).mockResolvedValueOnce({ user: { id: 'user-1' } } as Session);
+            vi.mocked(prisma.monitor.update).mockResolvedValueOnce({} as Monitor);
 
             await toggleMonitorAction('monitor-1', true);
 
@@ -126,7 +129,7 @@ describe('Server Actions', () => {
         });
 
         it('should return error if user already exists', async () => {
-            vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1' } as any);
+            vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: '1' } as User);
             const formData = new FormData();
             formData.append('name', 'John');
             formData.append('email', 'test@example.com');
@@ -138,7 +141,7 @@ describe('Server Actions', () => {
 
         it('should register user on success', async () => {
             vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
-            vi.mocked(prisma.user.create).mockResolvedValueOnce({} as any);
+            vi.mocked(prisma.user.create).mockResolvedValueOnce({} as User);
 
             const formData = new FormData();
             formData.append('name', 'John');
